@@ -413,9 +413,9 @@ App.Pages.home = {
       overlay.className = 'camera-capture-overlay';
       overlay.innerHTML = `
         <div class="camera-capture-box">
+          <button type="button" class="camera-close-btn">✕</button>
           <video class="camera-capture-video" autoplay playsinline muted></video>
           <div class="camera-capture-actions">
-            <button type="button" class="camera-cancel-btn">取消</button>
             <button type="button" class="camera-shot-btn">拍照</button>
           </div>
         </div>
@@ -426,7 +426,7 @@ App.Pages.home = {
       const video = overlay.querySelector('.camera-capture-video');
       video.srcObject = stream;
 
-      overlay.querySelector('.camera-cancel-btn').addEventListener('click', () => this._closeCustomCamera());
+      overlay.querySelector('.camera-close-btn').addEventListener('click', () => this._closeCustomCamera());
       overlay.querySelector('.camera-shot-btn').addEventListener('click', async () => {
         const file = await this._captureFromCustomCamera(video);
         if (!file) return;
