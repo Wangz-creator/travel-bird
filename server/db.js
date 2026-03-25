@@ -78,10 +78,7 @@ try {
   db.exec(`ALTER TABLE records ADD COLUMN voice_media_filename TEXT`);
 } catch (_) { /* 列已存在则忽略 */ }
 
-// 迁移：支持一条记录附带多张图片
-try {
-  db.exec(`ALTER TABLE records ADD COLUMN media_filenames TEXT`);
-} catch (_) { /* 列已存在则忽略 */ }
+// 注：media_filenames 列已包含在建表语句中，无需额外迁移
 
 // ===== 工具函数 =====
 function generateId() {
@@ -311,14 +308,15 @@ const Diaries = {
 const Settings = {
   get(key) {
     const row = db.prepare(`SELECT value FROM settings WHERE key = ?`).get(key);
-    return row ? JSON.parse(row.value) : null;
+    if (!row) return null;
+    try { return JSON.parse(row.value); } catch (_) { return row.value; }
   },
 
   getAll() {
     const rows = db.prepare(`SELECT key, value FROM settings`).all();
     const result = {};
     for (const row of rows) {
-      result[row.key] = JSON.parse(row.value);
+      try { result[row.key] = JSON.parse(row.value); } catch (_) { result[row.key] = row.value; }
     }
     return result;
   },
@@ -326,6 +324,10 @@ const Settings = {
   set(key, value) {
     db.prepare(`INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)`)
       .run(key, JSON.stringify(value));
+  },
+
+  delete(key) {
+    db.prepare(`DELETE FROM settings WHERE key = ?`).run(key);
   }
 };
 

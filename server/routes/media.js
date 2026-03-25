@@ -6,6 +6,11 @@ const fs = require('fs');
 
 const MEDIA_DIR = path.join(__dirname, '../media');
 
+// 确保 media 目录存在，避免上传时因目录不存在而报错
+if (!fs.existsSync(MEDIA_DIR)) {
+  fs.mkdirSync(MEDIA_DIR, { recursive: true });
+}
+
 const storage = multer.diskStorage({
   destination: MEDIA_DIR,
   filename(req, file, cb) {

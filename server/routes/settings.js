@@ -14,4 +14,10 @@ router.put('/:key', (req, res) => {
   res.json({ ok: true });
 });
 
+// DELETE /api/settings/:key
+router.delete('/:key', (req, res) => {
+  Settings.delete(req.params.key);
+  res.json({ ok: true });
+});
+
 module.exports = router;

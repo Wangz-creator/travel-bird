@@ -13,6 +13,12 @@ async function doInit() {
   // 从服务端加载设置缓存，供同步 Settings.get() 使用
   await App.API.init();
 
+  // 同步 isFirstVisit 状态：如果用户已完成引导，不再弹出 onboarding
+  const savedFirstVisit = App.API.Settings.get('is_first_visit');
+  if (savedFirstVisit === false) {
+    App.State.set('isFirstVisit', false);
+  }
+
   // 主动申请麦克风权限（触发系统弹窗）
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });

@@ -2,12 +2,13 @@ App.AI = App.AI || {};
 App.AI.ASSISTANT_BOOTSTRAP_USER_MESSAGE = '我选好了要聊的记录，请你先开口和我聊聊这些记录吧。';
 
 // ===== 核心 AI 调用（通过后端代理）=====
-App.AI.chatStream = async function({ messages, onChunk, onDone, onError }) {
+App.AI.chatStream = async function({ messages, onChunk, onDone, onError, signal }) {
   try {
     const res = await fetch('/api/ai/chat-stream', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages })
+      body: JSON.stringify({ messages }),
+      signal: signal || undefined
     });
 
     if (!res.ok) {
@@ -505,6 +506,7 @@ App.AI.Assistant = {
     ]);
     await App.AI.chatStream({
       messages: this._messages,
+      signal: this._abortController?.signal,
       onChunk: (chunk, full) => {
         const msgs = App.State.get('assistantMessages');
         msgs[msgs.length - 1] = { role: 'assistant', content: full, isStreaming: true };
@@ -517,6 +519,7 @@ App.AI.Assistant = {
         App.State.set('assistantMessages', [...msgs]);
       },
       onError: (e) => {
+        if (e.name === 'AbortError') return; // 用户主动取消，不提示错误
         App.UI.Toast.show('AI 调用失败：' + e.message, 'error');
       }
     });

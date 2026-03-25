@@ -1,20 +1,29 @@
 App.UI = App.UI || {};
 
 App.UI.Toast = {
+  _escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  },
+
   show(message, type = 'info', options = {}) {
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
-    toast.innerHTML = `
-      <span>${message}</span>
-      ${options.action ? `<button class="toast-action">${options.action.text}</button>` : ''}
-    `;
-    document.body.appendChild(toast);
+    const msgSpan = document.createElement('span');
+    msgSpan.textContent = message;
+    toast.appendChild(msgSpan);
     if (options.action) {
-      toast.querySelector('.toast-action').onclick = () => {
+      const btn = document.createElement('button');
+      btn.className = 'toast-action';
+      btn.textContent = options.action.text;
+      btn.onclick = () => {
         options.action.onClick();
         toast.remove();
       };
+      toast.appendChild(btn);
     }
+    document.body.appendChild(toast);
     requestAnimationFrame(() => toast.classList.add('toast-visible'));
     setTimeout(() => {
       toast.classList.remove('toast-visible');

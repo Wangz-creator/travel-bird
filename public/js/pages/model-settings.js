@@ -1,6 +1,11 @@
 App.Pages.modelSettings = {
+  _escapeAttr(str) {
+    return String(str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  },
+
   render(container) {
     const get = (k) => App.API.Settings.get(k) || '';
+    const esc = (k) => this._escapeAttr(get(k));
     container.innerHTML = `
       <div class="model-settings-page">
         <div class="page-header">
@@ -12,7 +17,7 @@ App.Pages.modelSettings = {
             <div class="settings-section-title">🗣️ 语音转文字</div>
             <div class="settings-field">
               <label>API Key</label>
-              <input type="password" id="voice-key" value="${get('voice_api_key')}" placeholder="请输入 API Key" />
+              <input type="password" id="voice-key" value="${esc('voice_api_key')}" placeholder="请输入 API Key" />
             </div>
           </div>
           <div class="settings-section">
@@ -26,23 +31,23 @@ App.Pages.modelSettings = {
             </div>
             <div class="settings-field">
               <label>API 地址 (Endpoint)</label>
-              <input type="url" id="asst-endpoint" value="${get('assistant_endpoint')}" placeholder="https://api.openai.com" />
+              <input type="url" id="asst-endpoint" value="${esc('assistant_endpoint')}" placeholder="https://api.openai.com" />
             </div>
             <div class="settings-field">
               <label>API Key</label>
-              <input type="password" id="asst-key" value="${get('assistant_api_key')}" placeholder="sk-..." />
+              <input type="password" id="asst-key" value="${esc('assistant_api_key')}" placeholder="sk-..." />
             </div>
             <div class="settings-field">
               <label>模型</label>
-              <input type="text" id="asst-model" value="${get('assistant_model')}" placeholder="gpt-4o" />
+              <input type="text" id="asst-model" value="${esc('assistant_model')}" placeholder="gpt-4o" />
             </div>
             <div class="settings-field">
               <label>Temperature (0-1)</label>
-              <input type="number" id="asst-temp" min="0" max="1" step="0.1" value="${get('assistant_temperature') || '0.7'}" />
+              <input type="number" id="asst-temp" min="0" max="1" step="0.1" value="${this._escapeAttr(get('assistant_temperature') || '0.7')}" />
             </div>
             <div class="settings-field">
               <label>Max Tokens</label>
-              <input type="number" id="asst-maxtokens" value="${get('assistant_max_tokens') || '4096'}" placeholder="4096" />
+              <input type="number" id="asst-maxtokens" value="${this._escapeAttr(get('assistant_max_tokens') || '4096')}" placeholder="4096" />
             </div>
           </div>
         </div>
