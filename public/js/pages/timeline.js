@@ -126,6 +126,11 @@ App.Pages.timeline = {
     const { byDay, sortedDays } = this._groupRecordsByDay(records);
     const today = App.Utils.userCalendarDateString();
 
+    // 今日默认展开（日视图下）
+    if (this._viewMode === 'day' && sortedDays.includes(today)) {
+      this._expandedDays.add(today);
+    }
+
     let html = '';
     if (this._viewMode === 'day') html = this._htmlDayView(byDay, sortedDays, today);
     else if (this._viewMode === 'week') html = this._htmlWeekView(byDay, sortedDays);
@@ -159,6 +164,15 @@ App.Pages.timeline = {
     `;
   },
 
+  _timeRangeSummary(records) {
+    if (!records.length) return '';
+    const times = records.map(r => new Date(r.created_at).getTime()).sort((a, b) => a - b);
+    const earliest = App.Utils.formatTime(new Date(times[0]).toISOString());
+    if (records.length === 1) return earliest;
+    const latest = App.Utils.formatTime(new Date(times[times.length - 1]).toISOString());
+    return earliest === latest ? earliest : `${earliest} - ${latest}`;
+  },
+
   _htmlDayView(byDay, sortedDays, today) {
     let html = '';
     const ordered = this._orderedDaysForDayView(sortedDays, today);
@@ -176,11 +190,13 @@ App.Pages.timeline = {
         for (const r of list) html += this._renderRecord(r);
         html += `</div></div>`;
       } else {
-        const main = places ? `${heading} · ${places}` : heading;
+        const timeRange = this._timeRangeSummary(list);
+        const detailParts = [timeRange, places].filter(Boolean);
+        const detail = detailParts.length ? ` · ${detailParts.join(' · ')}` : '';
         html += `
           <div class="tl-collapsed-card" data-expand-day="${day}">
             <div class="tl-collapsed-left">
-              <div class="tl-collapsed-date">${this._escapeHtml(main)}</div>
+              <div class="tl-collapsed-date">${this._escapeHtml(heading)}${detail ? `<span class="tl-collapsed-detail">${this._escapeHtml(detail)}</span>` : ''}</div>
               <div class="tl-collapsed-summary">${count} 条记录</div>
             </div>
             <span class="tl-collapsed-arrow">${this._icon('chevronRight', 'tl-chevron-icon', { size: 18, strokeWidth: 2 })}</span>
@@ -230,10 +246,12 @@ App.Pages.timeline = {
         }
         html += `</div></div>`;
       } else {
+        const detailParts = [places].filter(Boolean);
+        const detail = detailParts.length ? ` · ${detailParts.join(' · ')}` : '';
         html += `
           <div class="tl-collapsed-card" data-expand-week="${key}">
             <div class="tl-collapsed-left">
-              <div class="tl-collapsed-date">${this._escapeHtml(main)}</div>
+              <div class="tl-collapsed-date">${this._escapeHtml(whead)}${detail ? `<span class="tl-collapsed-detail">${this._escapeHtml(detail)}</span>` : ''}</div>
               <div class="tl-collapsed-summary">${count} 条记录</div>
             </div>
             <span class="tl-collapsed-arrow">${this._icon('chevronRight', 'tl-chevron-icon', { size: 18, strokeWidth: 2 })}</span>
@@ -283,10 +301,12 @@ App.Pages.timeline = {
         }
         html += `</div></div>`;
       } else {
+        const detailParts = [places].filter(Boolean);
+        const detail = detailParts.length ? ` · ${detailParts.join(' · ')}` : '';
         html += `
           <div class="tl-collapsed-card" data-expand-month="${key}">
             <div class="tl-collapsed-left">
-              <div class="tl-collapsed-date">${this._escapeHtml(main)}</div>
+              <div class="tl-collapsed-date">${this._escapeHtml(mhead)}${detail ? `<span class="tl-collapsed-detail">${this._escapeHtml(detail)}</span>` : ''}</div>
               <div class="tl-collapsed-summary">${count} 条记录</div>
             </div>
             <span class="tl-collapsed-arrow">${this._icon('chevronRight', 'tl-chevron-icon', { size: 18, strokeWidth: 2 })}</span>

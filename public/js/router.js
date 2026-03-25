@@ -32,6 +32,16 @@ App.Router = {
     `;
 
     this._container.querySelectorAll('.tab-item').forEach(tab => {
+      // 用 touchend 代替 click 减少移动端延迟，避免 active 样式闪烁
+      let touchMoved = false;
+      tab.addEventListener('touchstart', () => { touchMoved = false; }, { passive: true });
+      tab.addEventListener('touchmove', () => { touchMoved = true; }, { passive: true });
+      tab.addEventListener('touchend', (e) => {
+        if (touchMoved) return;
+        e.preventDefault(); // 阻止后续 click 事件
+        this.switchTab(tab.dataset.tab);
+      });
+      // 保留 click 作为 PC/无障碍降级
       tab.addEventListener('click', () => {
         this.switchTab(tab.dataset.tab);
       });
@@ -49,9 +59,17 @@ App.Router = {
     App.State.set('currentTab', tabName);
     App.State.set('currentPage', null);
 
-    this._container.querySelectorAll('.tab-item').forEach(tab => {
-      tab.classList.toggle('active', tab.dataset.tab === tabName);
-    });
+    // 先移除所有 active，再添加目标 active（确保移动端浏览器正确重绘）
+    const tabBar = document.getElementById('tab-bar');
+    if (tabBar) {
+      const tabs = tabBar.querySelectorAll('.tab-item');
+      tabs.forEach(tab => tab.classList.remove('active'));
+      // 强制浏览器重排，确保移除生效
+      void tabBar.offsetHeight;
+      tabs.forEach(tab => {
+        if (tab.dataset.tab === tabName) tab.classList.add('active');
+      });
+    }
 
     const viewContainer = document.getElementById('view-container');
     viewContainer.innerHTML = '';
