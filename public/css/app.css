@@ -48,18 +48,27 @@ body {
   height: 100dvh;
   -webkit-tap-highlight-color: transparent;
   font-weight: 600;
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
 }
 #app {
   height: 100vh;
   height: 100dvh;
   display: flex;
   flex-direction: column;
-  max-width: 480px;
+  width: 100%;
   margin: 0 auto;
   background: var(--color-bg);
   position: relative;
-  border-left: var(--border);
-  border-right: var(--border);
+}
+
+/* 桌面端：保持居中卡片样式 */
+@media (min-width: 481px) {
+  #app {
+    max-width: 480px;
+    border-left: var(--border);
+    border-right: var(--border);
+  }
 }
 
 /* ===== Loading Screen ===== */
@@ -204,11 +213,13 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  max-width: 480px;
   margin: 0 auto;
   background: var(--color-bg);
   z-index: 100;
   animation: slideInRight 0.25s ease-out;
+}
+@media (min-width: 481px) {
+  .page-overlay { max-width: 480px; }
 }
 @keyframes slideInRight {
   from { transform: translateX(100%); }
@@ -534,9 +545,11 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  max-width: 480px;
   margin: 0 auto;
   animation: fadeIn 0.2s;
+}
+@media (min-width: 481px) {
+  .text-input-overlay { max-width: 480px; }
 }
 .text-input-box {
   background: var(--color-card);
@@ -662,10 +675,12 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  max-width: 480px;
   margin: 0 auto;
   color: #fff;
   animation: fadeIn 0.2s;
+}
+@media (min-width: 481px) {
+  .recording-overlay { max-width: 480px; }
 }
 .recording-indicator {
   width: 110px;
@@ -742,8 +757,10 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  max-width: 480px;
   margin: 0 auto;
+}
+@media (min-width: 481px) {
+  .camera-capture-overlay { max-width: 480px; }
 }
 .camera-capture-box {
   width: 100%;
@@ -896,12 +913,14 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  max-width: 480px;
   margin: 0 auto;
   color: var(--color-text);
   animation: fadeIn 0.3s;
   padding: 24px;
   text-align: center;
+}
+@media (min-width: 481px) {
+  .onboarding-overlay { max-width: 480px; }
 }
 .onboarding-step { display: none; flex-direction: column; align-items: center; gap: 16px; }
 .onboarding-step.active { display: flex; }
@@ -1479,9 +1498,11 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  max-width: 480px;
   margin: 0 auto;
   animation: fadeIn 0.2s;
+}
+@media (min-width: 481px) {
+  .edit-record-overlay { max-width: 480px; }
 }
 .edit-record-box {
   background: var(--color-card);
@@ -2583,4 +2604,90 @@ body {
   color: var(--color-text-hint);
   margin-top: 14px;
   opacity: 0.7;
+}
+
+/* ===== Mobile-First Responsive Adaptations ===== */
+
+/* 小屏手机适配（≤375px，如 iPhone SE） */
+@media (max-width: 375px) {
+  :root {
+    --tab-bar-height: 68px;
+    --header-height: 50px;
+  }
+  .home-title { font-size: 30px; }
+  .pigeon-btn { width: 130px; height: 130px; }
+  .pigeon-btn-img { width: 230px; height: 230px; margin-top: -18px; }
+  .home-subtitle { font-size: 14px; }
+  .timeline-header .title { font-size: 24px; }
+  .tab-item .tab-label { font-size: 10px; }
+  .tl-record { padding: 12px; }
+  .tl-section-heading { font-size: 15px; }
+  .profile-stat-card { padding: 12px 8px; }
+  .profile-stat-value { font-size: 24px; }
+  .modal-box { width: 280px; padding: 20px; }
+  .msg-bubble { font-size: 14px; padding: 10px 14px; }
+  .assistant-input-bar input { font-size: 14px; padding: 9px 14px; }
+}
+
+/* 中等手机（376px - 430px，大部分 iPhone / Android） */
+@media (min-width: 376px) and (max-width: 430px) {
+  .home-title { font-size: 34px; }
+  .pigeon-btn { width: 150px; height: 150px; }
+  .pigeon-btn-img { width: 260px; height: 260px; }
+}
+
+/* 大屏手机/折叠屏（431px - 480px） */
+@media (min-width: 431px) and (max-width: 480px) {
+  .home-page { padding: 0 24px 24px; }
+}
+
+/* 横屏模式适配 */
+@media (max-height: 500px) and (orientation: landscape) {
+  .home-center { padding-top: 12px; }
+  .pigeon-btn { width: 100px; height: 100px; }
+  .pigeon-btn-img { width: 180px; height: 180px; margin-top: -14px; }
+  .pigeon-hint { margin-top: 12px; }
+  .home-hero { padding-top: 12px; }
+  .home-title { font-size: 24px; margin-top: 6px; }
+  .home-subtitle { display: none; }
+  #tab-bar { height: 56px; }
+  .tab-item .tab-label { display: none; }
+  .recording-indicator { width: 80px; height: 80px; font-size: 32px; }
+}
+
+/* 触摸优化：移动端无 hover 效果 */
+@media (hover: none) and (pointer: coarse) {
+  .tab-item:hover,
+  .tl-record:hover,
+  .profile-menu-item:hover,
+  .diary-item:hover,
+  .prompt-item:hover {
+    background: inherit;
+  }
+  /* 增大触摸目标 */
+  .tl-record-actions button { min-height: 40px; min-width: 44px; }
+  .page-header .back-btn { min-height: 44px; min-width: 44px; display: flex; align-items: center; justify-content: center; }
+}
+
+/* iOS PWA standalone 模式 */
+@media all and (display-mode: standalone) {
+  body {
+    padding-top: env(safe-area-inset-top, 0);
+  }
+}
+
+/* 暗色状态栏适配 */
+@supports (padding: max(0px)) {
+  .home-hero {
+    padding-top: max(24px, calc(24px + env(safe-area-inset-top, 0)));
+  }
+  .timeline-header {
+    padding-top: max(14px, calc(14px + env(safe-area-inset-top, 0)));
+  }
+  .profile-header-card {
+    padding-top: max(28px, calc(28px + env(safe-area-inset-top, 0)));
+  }
+  #tab-bar {
+    padding-bottom: max(6px, calc(6px + env(safe-area-inset-bottom, 0)));
+  }
 }
