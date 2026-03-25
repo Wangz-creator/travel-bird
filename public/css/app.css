@@ -1333,6 +1333,14 @@ body {
   align-items: center;
   gap: 4px;
 }
+.tl-record-location.tl-location-none {
+  opacity: 0.45;
+  font-style: italic;
+}
+.tl-record-location.tl-location-loading {
+  opacity: 0.6;
+  animation: permPulse 1.2s ease-in-out infinite;
+}
 .tl-record-content {
   font-size: 13px;
   line-height: 1.6;

@@ -4,6 +4,7 @@ App.Pages.timeline = {
   _expandedDays: new Set(),
   _expandedWeeks: new Set(),
   _expandedMonths: new Set(),
+  _manuallyCollapsed: new Set(),   // 用户手动收起的日期key，防止自动展开覆盖
   _viewMode: 'day',
   _container: null,
   _selectBar: null,
@@ -19,6 +20,7 @@ App.Pages.timeline = {
     this._expandedDays = new Set();
     this._expandedWeeks = new Set();
     this._expandedMonths = new Set();
+    this._manuallyCollapsed = new Set();
     this._viewMode = 'day';
 
     container.innerHTML = `
@@ -126,8 +128,8 @@ App.Pages.timeline = {
     const { byDay, sortedDays } = this._groupRecordsByDay(records);
     const today = App.Utils.userCalendarDateString();
 
-    // 今日默认展开（日视图下）
-    if (this._viewMode === 'day' && sortedDays.includes(today)) {
+    // 今日默认展开（日视图下），但用户手动收起后不再自动展开
+    if (this._viewMode === 'day' && sortedDays.includes(today) && !this._manuallyCollapsed.has(today)) {
       this._expandedDays.add(today);
     }
 
@@ -346,7 +348,9 @@ App.Pages.timeline = {
     if (r.ai_supplement) supplementHtml = `<div class="tl-supplement">✦ 鸽子GUGU说：${this._escapeHtml(r.ai_supplement)}</div>`;
     const addrHtml = r.address
       ? `<span class="tl-record-location">${this._icon('location', 'tl-location-icon', { size: 12, strokeWidth: 2 })}<span>${this._escapeHtml(r.address)}</span></span>`
-      : '';
+      : (r.latitude != null && r.longitude != null)
+        ? `<span class="tl-record-location tl-location-loading">${this._icon('location', 'tl-location-icon', { size: 12, strokeWidth: 2 })}<span>定位解析中…</span></span>`
+        : `<span class="tl-record-location tl-location-none">${this._icon('location', 'tl-location-icon', { size: 12, strokeWidth: 2 })}<span>未获取定位</span></span>`;
     return `
       <div class="tl-record" data-record-id="${r.record_id}" data-type="${r.type}">
         <div class="tl-record-top">
@@ -387,7 +391,9 @@ App.Pages.timeline = {
   _bindListEvents(listEl) {
     listEl.querySelectorAll('[data-expand-day]').forEach(card => {
       card.addEventListener('click', () => {
-        this._expandedDays.add(card.dataset.expandDay);
+        const day = card.dataset.expandDay;
+        this._expandedDays.add(day);
+        this._manuallyCollapsed.delete(day);  // 用户主动展开，清除手动收起标记
         this._renderList();
       });
     });
@@ -407,7 +413,9 @@ App.Pages.timeline = {
       btn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        this._expandedDays.delete(btn.dataset.collapseDay);
+        const day = btn.dataset.collapseDay;
+        this._expandedDays.delete(day);
+        this._manuallyCollapsed.add(day);   // 标记为手动收起，阻止自动展开
         this._renderList();
       });
     });
