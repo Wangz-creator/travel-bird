@@ -155,21 +155,78 @@ App.Utils = {
     return d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
   },
 
+  _lastKnownPosition: null,
+
   async getCurrentPosition() {
-    return new Promise((resolve) => {
-      if (!navigator.geolocation) { console.warn('[Geo] navigator.geolocation 不可用'); resolve(null); return; }
+    if (!navigator.geolocation) { console.warn('[Geo] navigator.geolocation 不可用'); return this._lastKnownPosition; }
+
+    // 先尝试高精度短超时
+    const tryGet = (options) => new Promise((resolve) => {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          console.log('[Geo] 定位成功:', pos.coords.latitude, pos.coords.longitude);
-          resolve({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
+          const result = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
+          console.log('[Geo] 定位成功:', result.latitude, result.longitude, 'accuracy:', pos.coords.accuracy);
+          this._lastKnownPosition = result;
+          resolve(result);
         },
         (err) => {
-          console.warn('[Geo] 定位失败:', err.code, err.message);
+          console.warn('[Geo] 定位失败:', err.code, err.message, JSON.stringify(options));
+          resolve(null);
+        },
+        options
+      );
+    });
+
+    // 策略1：优先用缓存定位（快速，最多2分钟前的）
+    let pos = await tryGet({ timeout: 3000, maximumAge: 120000, enableHighAccuracy: false });
+    if (pos) return pos;
+
+    // 策略2：低精度新定位，更长超时
+    pos = await tryGet({ timeout: 15000, maximumAge: 0, enableHighAccuracy: false });
+    if (pos) return pos;
+
+    // 策略3：高精度定位（某些设备仅在 enableHighAccuracy=true 时才返回）
+    pos = await tryGet({ timeout: 15000, maximumAge: 60000, enableHighAccuracy: true });
+    if (pos) return pos;
+
+    // 策略4：使用 watchPosition 短时监听（部分浏览器 getCurrentPosition 不工作但 watch 可以）
+    pos = await new Promise((resolve) => {
+      let resolved = false;
+      const watchId = navigator.geolocation.watchPosition(
+        (p) => {
+          if (resolved) return;
+          resolved = true;
+          navigator.geolocation.clearWatch(watchId);
+          const result = { latitude: p.coords.latitude, longitude: p.coords.longitude };
+          console.log('[Geo] watchPosition 定位成功:', result.latitude, result.longitude);
+          this._lastKnownPosition = result;
+          resolve(result);
+        },
+        (err) => {
+          if (resolved) return;
+          resolved = true;
+          navigator.geolocation.clearWatch(watchId);
+          console.warn('[Geo] watchPosition 也失败:', err.code, err.message);
           resolve(null);
         },
         { timeout: 10000, maximumAge: 120000, enableHighAccuracy: false }
       );
+      // 兜底超时
+      setTimeout(() => {
+        if (resolved) return;
+        resolved = true;
+        navigator.geolocation.clearWatch(watchId);
+        console.warn('[Geo] watchPosition 超时');
+        resolve(null);
+      }, 12000);
     });
+    if (pos) return pos;
+
+    // 所有策略均失败，返回上次已知位置
+    if (this._lastKnownPosition) {
+      console.log('[Geo] 使用上次已知位置:', this._lastKnownPosition.latitude, this._lastKnownPosition.longitude);
+    }
+    return this._lastKnownPosition;
   },
 
   _normalizePlaceText(text) {
@@ -286,7 +343,12 @@ App.Utils = {
     try {
       const address = await this.reverseGeocode(record.latitude, record.longitude);
       if (!address) return null;
-      await App.API.Records.update(recordId, { address });
+      // 同时回填经纬度和地址（以防记录创建时经纬度缺失后通过 deferred backfill 传入）
+      await App.API.Records.update(recordId, {
+        address,
+        latitude: record.latitude,
+        longitude: record.longitude
+      });
       return address;
     } catch (e) {
       return null;

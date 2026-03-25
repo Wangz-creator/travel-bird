@@ -139,6 +139,34 @@ App.Pages.home = {
     }).catch(() => {});
   },
 
+  /**
+   * 创建记录后若缺少经纬度，后台延迟重试获取定位并回填
+   */
+  _scheduleDeferredGeoBackfill(recordId) {
+    if (!recordId) return;
+    // 延迟3秒后再尝试一次定位
+    setTimeout(async () => {
+      try {
+        const pos = await App.Utils.getCurrentPosition();
+        if (!pos) {
+          console.warn('[GeoBackfill] 延迟获取定位仍然失败, recordId:', recordId);
+          return;
+        }
+        console.log('[GeoBackfill] 延迟获取定位成功:', pos.latitude, pos.longitude, 'recordId:', recordId);
+        // 更新记录的经纬度
+        await App.API.Records.update(recordId, {
+          latitude: pos.latitude,
+          longitude: pos.longitude
+        });
+        // 回填地址
+        this._scheduleAddressBackfill(recordId, pos, null);
+        this._refreshTimelineIfVisible();
+      } catch (e) {
+        console.warn('[GeoBackfill] 延迟回填失败:', e);
+      }
+    }, 3000);
+  },
+
   _scheduleBatchAddressBackfill(recordIds, pos, existingAddress) {
     if (!recordIds?.length || existingAddress || !pos) return;
     this._scheduleAddressBackfill(recordIds[0], pos, existingAddress);
@@ -282,7 +310,12 @@ App.Pages.home = {
           address: null
         });
         const geoPos = (lat != null && lon != null) ? { latitude: lat, longitude: lon } : null;
-        this._scheduleAddressBackfill(recordId, geoPos, null);
+        if (geoPos) {
+          this._scheduleAddressBackfill(recordId, geoPos, null);
+        } else {
+          // 定位失败，延迟重试获取定位并回填
+          this._scheduleDeferredGeoBackfill(recordId);
+        }
         closeOverlay();
         App.UI.Toast.show('记录成功', 'success');
         this._updateHint();
@@ -348,7 +381,11 @@ App.Pages.home = {
     App.UI.Toast.show('语音已保存，正在转写...', 'info');
     this._updateHint();
 
-    this._scheduleAddressBackfill(recordId, pos, null);
+    if (pos) {
+      this._scheduleAddressBackfill(recordId, pos, null);
+    } else {
+      this._scheduleDeferredGeoBackfill(recordId);
+    }
 
     // 后台转写，成功后更新 content 并刷新时间轴
     App.AI.transcribeAudio(blob).then(async text => {
@@ -502,6 +539,11 @@ App.Pages.home = {
       // 逐条回填地址（每张照片可能有不同 GPS）
       for (const item of addressBackfillList) {
         this._scheduleAddressBackfill(item.recordId, item.pos, null);
+      }
+      // 对没有定位的记录，延迟重试
+      const noGeoRecords = recordIds.filter(id => !addressBackfillList.some(item => item.recordId === id));
+      for (const id of noGeoRecords) {
+        this._scheduleDeferredGeoBackfill(id);
       }
       App.UI.Toast.show(`${files.length} 张照片已保存`, 'success');
       this._updateHint();

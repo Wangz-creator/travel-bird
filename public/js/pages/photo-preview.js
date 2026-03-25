@@ -114,8 +114,12 @@ App.Pages.photoPreview = {
           voiceMediaFilename: voiceFilename || undefined,
           createdAt: exif.dateTime || undefined
         });
-        const geoPos = (lat != null && lon != null) ? { latitude: lat, longitude: lon } : pos;
-        App.Pages.home._scheduleAddressBackfill(recordId, geoPos, null);
+        const geoPos = (lat != null && lon != null) ? { latitude: lat, longitude: lon } : null;
+        if (geoPos) {
+          App.Pages.home._scheduleAddressBackfill(recordId, geoPos, null);
+        } else {
+          App.Pages.home._scheduleDeferredGeoBackfill(recordId);
+        }
         URL.revokeObjectURL(objectURL);
         App.Router.popPage();
         App.UI.Toast.show('照片已保存', 'success');

@@ -197,7 +197,7 @@ const Records = {
   },
 
   update(recordId, fields) {
-    const allowed = ['content', 'caption', 'address', 'ai_supplement', 'ai_supplement_at', 'voice_media_filename', 'media_filenames'];
+    const allowed = ['content', 'caption', 'address', 'latitude', 'longitude', 'ai_supplement', 'ai_supplement_at', 'voice_media_filename', 'media_filenames'];
     const normalizedFields = { ...fields };
     if (Object.prototype.hasOwnProperty.call(normalizedFields, 'media_filenames')) {
       const normalizedMediaFilenames = normalizeMediaFilenames(normalizedFields.media_filenames);
