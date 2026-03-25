@@ -2377,3 +2377,210 @@ body {
   color: white;
   box-shadow: 3px 3px 0px #b34720;
 }
+
+/* ===== Permission Guide Overlay ===== */
+.permission-guide-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(26, 26, 26, 0.88);
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.permission-guide-overlay.visible {
+  opacity: 1;
+}
+.permission-guide-overlay.closing {
+  opacity: 0;
+}
+.permission-guide-card {
+  background: var(--color-card);
+  border: var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 380px;
+  padding: 28px 24px 24px;
+  transform: translateY(30px);
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.permission-guide-overlay.visible .permission-guide-card {
+  transform: translateY(0);
+}
+.permission-guide-overlay.closing .permission-guide-card {
+  transform: translateY(30px);
+}
+
+/* Header */
+.permission-guide-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.permission-guide-emoji {
+  font-size: 48px;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+.permission-guide-title {
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--color-text);
+  margin: 0 0 6px;
+}
+.permission-guide-subtitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-hint);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Permission List */
+.permission-guide-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.permission-guide-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--color-bg);
+  border: 2.5px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.permission-guide-item:active {
+  transform: translate(1px, 1px);
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+.permission-guide-item-icon {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-card);
+  border: 2.5px solid var(--color-border);
+  border-radius: 14px;
+  box-shadow: 2px 2px 0px var(--color-border);
+  flex-shrink: 0;
+}
+.permission-guide-item-icon .permission-icon {
+  color: var(--color-primary);
+}
+.permission-guide-item-info {
+  flex: 1;
+  min-width: 0;
+}
+.permission-guide-item-name {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--color-text);
+}
+.permission-guide-item-desc {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-hint);
+  margin-top: 2px;
+}
+.permission-guide-item-status {
+  flex-shrink: 0;
+}
+
+/* Status Badge */
+.permission-status {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: var(--radius-btn);
+  border: 2px solid;
+  white-space: nowrap;
+}
+.permission-status.granted {
+  color: #2d7a52;
+  background: rgba(66, 170, 117, 0.15);
+  border-color: var(--color-success);
+}
+.permission-status.denied {
+  color: #a82e22;
+  background: rgba(232, 66, 51, 0.12);
+  border-color: var(--color-error);
+}
+.permission-status.prompt {
+  color: var(--color-text-hint);
+  background: rgba(0, 0, 0, 0.05);
+  border-color: var(--color-border-light);
+}
+.permission-status.requesting {
+  color: #b38200;
+  background: rgba(255, 204, 0, 0.18);
+  border-color: var(--color-accent);
+  animation: permPulse 1s ease-in-out infinite;
+}
+@keyframes permPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Actions */
+.permission-guide-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.permission-guide-btn-all {
+  width: 100%;
+  padding: 14px 0;
+  font-size: 16px;
+  font-weight: 800;
+  border: var(--border);
+  border-radius: var(--radius-btn);
+  background: var(--color-primary);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: var(--shadow-primary);
+  transition: all 0.12s ease;
+}
+.permission-guide-btn-all:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px #2d7a52;
+}
+.permission-guide-btn-all:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+.permission-guide-btn-skip {
+  width: 100%;
+  padding: 10px 0;
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  border-radius: var(--radius-btn);
+  background: transparent;
+  color: var(--color-text-hint);
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.permission-guide-btn-skip:active {
+  color: var(--color-text);
+}
+
+/* Footnote */
+.permission-guide-footnote {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-hint);
+  margin-top: 14px;
+  opacity: 0.7;
+}

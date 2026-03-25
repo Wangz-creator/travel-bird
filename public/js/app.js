@@ -19,18 +19,21 @@ async function doInit() {
     App.State.set('isFirstVisit', false);
   }
 
-  // 主动申请麦克风权限（触发系统弹窗）
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    stream.getTracks().forEach(t => t.stop());
-  } catch (e) {
-    // 权限被拒绝或不支持，不阻塞启动，录音时再提示
-    console.warn('麦克风权限未授权:', e.message);
-  }
-
   // 初始化路由和渲染
   App.Router.init();
   App.Router.switchTab('home');
+
+  // 在页面渲染完成后，显示权限引导弹窗（不阻塞首屏）
+  setTimeout(async () => {
+    try {
+      const needsGuide = await App.Permissions.needsGuide();
+      if (needsGuide) {
+        await App.Permissions.showGuide();
+      }
+    } catch (e) {
+      console.warn('权限引导模块异常:', e.message);
+    }
+  }, 800);
 }
 
 doInit().catch(e => {
