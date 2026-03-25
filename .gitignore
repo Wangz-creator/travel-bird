@@ -1,0 +1,25 @@
+# 依赖库
+node_modules/
+
+# 数据库文件
+server/pigeon.db
+server/pigeon.db-shm
+server/pigeon.db-wal
+
+# 用户上传的媒体文件
+server/media/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 环境变量
+.env
+.env.local
+
+# 日志
+*.log
+npm-debug.log*
+
+# 编辑器
+.cursor/
