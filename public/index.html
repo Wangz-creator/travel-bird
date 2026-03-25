@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="color-scheme" content="light only">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>旅行的鸽子</title>
+  <link rel="stylesheet" href="/fonts/nunito.css">
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+  <div id="app"></div>
+
+  <!-- 命名空间初始化 -->
+  <script>
+    var App = { Pages: {}, State: {}, Router: {}, UI: {}, AI: {}, API: {}, Utils: {} };
+  </script>
+
+  <!-- 基础模块 -->
+  <script src="/js/utils.js"></script>
+  <script src="/js/state.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/ui.js"></script>
+  <script src="/js/ai.js"></script>
+
+  <!-- 页面组件 -->
+  <script src="/js/pages/home.js"></script>
+  <script src="/js/pages/photo-preview.js"></script>
+  <script src="/js/pages/photo-confirm.js"></script>
+  <script src="/js/pages/timeline.js"></script>
+  <script src="/js/pages/assistant.js"></script>
+  <script src="/js/pages/result.js"></script>
+  <script src="/js/pages/diary-list.js"></script>
+  <script src="/js/pages/diary-detail.js"></script>
+  <script src="/js/pages/model-settings.js"></script>
+  <script src="/js/pages/prompt-list.js"></script>
+  <script src="/js/pages/prompt-edit.js"></script>
+  <script src="/js/pages/profile.js"></script>
+
+  <!-- 路由 + 启动 -->
+  <script src="/js/router.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
