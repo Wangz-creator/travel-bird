@@ -79,11 +79,28 @@ App.Permissions = {
 
   /**
    * 判断是否需要显示权限引导弹窗
-   * 条件：有任何权限还是 'prompt' 或 'unknown' 状态（未授权也未拒绝）
+   * 策略：
+   *  1. 如果用户从未完成过引导（localStorage 没有标记），始终弹出
+   *  2. 如果已完成过引导，仅当有新的未授权权限时才弹出
    */
   async needsGuide() {
+    const guideCompleted = localStorage.getItem('permission_guide_completed');
+
+    // 首次访问，从未完成过引导 → 必须弹出
+    if (!guideCompleted) {
+      return true;
+    }
+
+    // 已完成过引导，检查是否有权限仍需授权
     const states = await this.queryAll();
     return Object.values(states).some(s => s === 'prompt' || s === 'unknown');
+  },
+
+  /**
+   * 标记权限引导已完成
+   */
+  _markGuideCompleted() {
+    localStorage.setItem('permission_guide_completed', Date.now().toString());
   },
 
   /**
@@ -93,13 +110,6 @@ App.Permissions = {
   showGuide() {
     return new Promise(async (resolve) => {
       const states = await this.queryAll();
-
-      // 如果所有权限都已处理（granted 或 denied），不弹窗
-      const needsAction = this._permissions.some(p => {
-        const s = states[p.id];
-        return s === 'prompt' || s === 'unknown';
-      });
-      if (!needsAction) { resolve(); return; }
 
       const overlay = document.createElement('div');
       overlay.className = 'permission-guide-overlay';
@@ -193,6 +203,7 @@ App.Permissions = {
       });
 
       const close = () => {
+        this._markGuideCompleted();
         overlay.classList.remove('visible');
         overlay.classList.add('closing');
         setTimeout(() => {
