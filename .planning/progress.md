@@ -1,5 +1,6 @@
-# Progress Log
+# 进度日志
 
-## Session Start
-- Task: Deploy travel-bird to platform
-- Previous attempts: git clone with proxy timed out
+## Session: EXIF 解析功能开发
+1. 已完成项目结构分析
+2. 确定技术方案：exifr + 后端 API + 自定义 createdAt
+3. 开始实现 Phase 1

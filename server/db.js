@@ -128,9 +128,9 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
 
 // ===== Records =====
 const Records = {
-  create({ type, content, mediaFilename, mediaFilenames, caption, latitude, longitude, address, voiceMediaFilename }) {
+  create({ type, content, mediaFilename, mediaFilenames, caption, latitude, longitude, address, voiceMediaFilename, createdAt }) {
     const id = generateId();
-    const ts = now();
+    const ts = createdAt || now();
     const normalizedMediaFilenames = normalizeMediaFilenames(mediaFilenames);
     db.prepare(
       `INSERT INTO records (record_id, type, content, media_filename, media_filenames, caption, created_at, latitude, longitude, address, voice_media_filename)

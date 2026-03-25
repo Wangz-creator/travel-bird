@@ -1,31 +1,26 @@
-# Task Plan: Deploy travel-bird from GitHub
+# 任务计划：照片 EXIF 解析 → 时间轴排列
 
-## Goal
-从 GitHub 克隆 travel-bird 项目并部署到本平台（端口 8000）
+## 需求
+解析上传的照片，获得拍摄时间、地点等 EXIF 信息，将记录排在时间轴合适的位置（按拍摄时间而非上传时间）。
 
-## Phases
+---
 
-### Phase 1: Clone Project `complete`
-- 通过 GitHub ZIP API 下载（绕过代理超时）
-- 解压到 /workspace/o2u9swaadvlg/
+## Phase 1: 后端 EXIF 解析 `complete`
+- [x] 安装 `exifr` npm 包（轻量纯 JS EXIF 解析库）
+- [x] 新增 `POST /api/media/exif` 接口，接收文件名，返回 EXIF 信息
 
-### Phase 2: Analyze Project Structure `complete`
-- Express.js + better-sqlite3 + 纯 HTML/CSS/JS 前端
-- API 路由：records, diaries, settings, prompts, media, ai
-- 媒体文件上传到 server/media/
+## Phase 2: 数据库支持自定义时间 `complete`
+- [x] 修改 `Records.create()` 支持传入 `createdAt` 参数
+- [x] 修改 `POST /api/records` 路由接受 `createdAt` 字段
 
-### Phase 3: Adapt for Platform `complete`
-- package.json dev 脚本添加 PORT=8000
-- better-sqlite3 从 v12.8.0 降级到 v9.6.0（兼容 GLIBC 2.28）
-- 使用 node-gyp@9.4.1 编译原生模块（兼容 Python 3.6）
-- 创建 server/media/ 目录
+## Phase 3: 前端集成 EXIF → 时间轴 `complete`
+- [x] 单张照片保存（photo-preview.js）
+- [x] 多张照片批量上传（home.js _handlePhotos）
+- [x] 文字记录附带照片的 GPS 提取（home.js _showTextInput）
+- [x] 前端 API 模块支持 createdAt 和 parseExif（api.js）
 
-### Phase 4: Install & Start `complete`
-- pnpm install 安装依赖
-- node-gyp rebuild 编译 better-sqlite3
-- PORT=8000 启动服务，验证 HTTP 200
-
-## Errors Encountered
-| Error | Attempt | Resolution |
-|-------|---------|------------|
-| git clone timeout (proxy) | 1 | Try without proxy / use GitHub API |
+## Phase 4: 验证 `complete`
+- [x] 服务器正常启动（HTTP 200）
+- [x] EXIF API 正常响应
+- [x] 无编译错误
+- [x] 无 RUM 运行时错误

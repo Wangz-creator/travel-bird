@@ -246,15 +246,24 @@ App.Pages.home = {
           return App.API.FileStore.saveFile(file, tmpFilename);
         }));
         const pos = await App.Utils.getCurrentPosition();
+        // 如果没有实时定位，尝试从照片 EXIF 中获取 GPS
+        let lat = pos?.latitude;
+        let lon = pos?.longitude;
+        if (lat == null && lon == null && mediaFilenames.length > 0) {
+          const exif = await App.API.FileStore.parseExif(mediaFilenames[0]);
+          if (exif.latitude != null) lat = exif.latitude;
+          if (exif.longitude != null) lon = exif.longitude;
+        }
         const recordId = await App.API.Records.create({
           type: 'text',
           content: text,
           mediaFilenames,
-          latitude: pos?.latitude,
-          longitude: pos?.longitude,
+          latitude: lat,
+          longitude: lon,
           address: null
         });
-        this._scheduleAddressBackfill(recordId, pos, null);
+        const geoPos = (lat != null && lon != null) ? { latitude: lat, longitude: lon } : pos;
+        this._scheduleAddressBackfill(recordId, geoPos, null);
         closeOverlay();
         App.UI.Toast.show('记录成功', 'success');
         this._updateHint();
@@ -454,15 +463,32 @@ App.Pages.home = {
       const pos = await App.Utils.getCurrentPosition();
       const autofillJobs = [];
       const recordIds = [];
+      const addressBackfillList = [];
       for (const file of files) {
         const ext = file.name.split('.').pop().toLowerCase() || 'jpg';
         const tmpFilename = App.API.FileStore.generateFilename(ext);
         const filename = await App.API.FileStore.saveFile(file, tmpFilename);
-        const recordId = await App.API.Records.create({ type: 'photo', mediaFilename: filename, latitude: pos?.latitude, longitude: pos?.longitude, address: null });
+        // 解析 EXIF 信息
+        const exif = await App.API.FileStore.parseExif(filename);
+        const lat = exif.latitude ?? pos?.latitude;
+        const lon = exif.longitude ?? pos?.longitude;
+        const recordId = await App.API.Records.create({
+          type: 'photo',
+          mediaFilename: filename,
+          latitude: lat,
+          longitude: lon,
+          address: null,
+          createdAt: exif.dateTime || undefined
+        });
         recordIds.push(recordId);
+        const geoPos = (lat != null && lon != null) ? { latitude: lat, longitude: lon } : null;
+        if (geoPos) addressBackfillList.push({ recordId, pos: geoPos });
         autofillJobs.push(App.AI.fillPhotoCaptionIfNeeded({ recordId, filename }));
       }
-      this._scheduleBatchAddressBackfill(recordIds, pos, null);
+      // 逐条回填地址（每张照片可能有不同 GPS）
+      for (const item of addressBackfillList) {
+        this._scheduleAddressBackfill(item.recordId, item.pos, null);
+      }
       App.UI.Toast.show(`${files.length} 张照片已保存`, 'success');
       this._updateHint();
       Promise.allSettled(autofillJobs).catch(() => {});

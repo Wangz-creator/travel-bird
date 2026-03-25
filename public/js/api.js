@@ -52,11 +52,11 @@ App.API = {
 
   // ===== Records =====
   Records: {
-    async create({ type, content, mediaFilename, mediaFilenames, caption, latitude, longitude, address, voiceMediaFilename }) {
+    async create({ type, content, mediaFilename, mediaFilenames, caption, latitude, longitude, address, voiceMediaFilename, createdAt }) {
       const res = await App.API._fetch('/api/records', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type, content, mediaFilename, mediaFilenames, caption, latitude, longitude, address, voiceMediaFilename })
+        body: JSON.stringify({ type, content, mediaFilename, mediaFilenames, caption, latitude, longitude, address, voiceMediaFilename, createdAt })
       });
       const data = await res.json();
       return data.record_id;
@@ -215,6 +215,26 @@ App.API = {
 
     generateFilename(ext) {
       return `${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    },
+
+    /**
+     * 解析已上传照片的 EXIF 信息（拍摄时间、GPS 坐标）
+     * @param {string} filename 已上传的文件名
+     * @returns {Promise<{dateTime: string|null, latitude: number|null, longitude: number|null}>}
+     */
+    async parseExif(filename) {
+      try {
+        const res = await fetch('/api/media/exif', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename })
+        });
+        if (!res.ok) return { dateTime: null, latitude: null, longitude: null };
+        return await res.json();
+      } catch (e) {
+        console.warn('EXIF parse failed:', e);
+        return { dateTime: null, latitude: null, longitude: null };
+      }
     }
   },
 

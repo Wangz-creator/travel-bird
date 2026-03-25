@@ -92,17 +92,27 @@ App.Pages.photoPreview = {
           voiceFilename = await App.API.FileStore.saveFile(voiceBlob, App.API.FileStore.generateFilename(voiceExt));
         }
         const caption = captionInput.value.trim() || null;
+
+        // 解析 EXIF 信息：拍摄时间和 GPS
+        const exif = await App.API.FileStore.parseExif(filename);
         const pos = await App.Utils.getCurrentPosition();
+
+        // EXIF GPS 优先于实时定位
+        const lat = exif.latitude ?? pos?.latitude;
+        const lon = exif.longitude ?? pos?.longitude;
+
         const recordId = await App.API.Records.create({
           type: 'photo',
           mediaFilename: filename,
           caption,
-          latitude: pos?.latitude,
-          longitude: pos?.longitude,
+          latitude: lat,
+          longitude: lon,
           address: null,
-          voiceMediaFilename: voiceFilename || undefined
+          voiceMediaFilename: voiceFilename || undefined,
+          createdAt: exif.dateTime || undefined
         });
-        App.Pages.home._scheduleAddressBackfill(recordId, pos, null);
+        const geoPos = (lat != null && lon != null) ? { latitude: lat, longitude: lon } : pos;
+        App.Pages.home._scheduleAddressBackfill(recordId, geoPos, null);
         URL.revokeObjectURL(objectURL);
         App.Router.popPage();
         App.UI.Toast.show('照片已保存', 'success');

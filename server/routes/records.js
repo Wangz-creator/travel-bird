@@ -123,9 +123,9 @@ router.get('/reverse-geocode', async (req, res) => {
 
 // POST /api/records
 router.post('/', (req, res) => {
-  const { type, content, mediaFilename, mediaFilenames, caption, latitude, longitude, address, voiceMediaFilename } = req.body;
+  const { type, content, mediaFilename, mediaFilenames, caption, latitude, longitude, address, voiceMediaFilename, createdAt } = req.body;
   if (!type) return res.status(400).json({ error: 'type 必填' });
-  const id = Records.create({ type, content, mediaFilename, mediaFilenames, caption, latitude, longitude, address, voiceMediaFilename });
+  const id = Records.create({ type, content, mediaFilename, mediaFilenames, caption, latitude, longitude, address, voiceMediaFilename, createdAt });
   res.json({ record_id: id });
 });
 
