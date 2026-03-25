@@ -31,16 +31,23 @@ App.Pages.home = {
             <div class="pigeon-btn" id="pigeon-btn" aria-label="记录旅程">
               <span class="pigeon-btn-face pigeon-btn-face-idle"><img src="/img/pigeon.png" alt="鸽子" class="pigeon-btn-img"></span>
               <span class="pigeon-btn-face pigeon-btn-face-recording">
-                ${App.UI.Icons.render('mic', 'pigeon-record-icon', { size: 54, strokeWidth: 2.1 })}
+                ${App.UI.Icons.render('mic', 'pigeon-record-icon', { size: 60, strokeWidth: 2.1 })}
+                <div class="pigeon-rec-wave">
+                  <span></span><span></span><span></span><span></span><span></span>
+                </div>
               </span>
             </div>
           </div>
-          <div class="pigeon-hint">
+          <div class="pigeon-rec-info" id="pigeon-rec-info">
+            <div class="pigeon-rec-time" id="pigeon-rec-time">00:00</div>
+            <div class="pigeon-rec-hint">松开结束 · 上滑取消</div>
+          </div>
+          <div class="pigeon-hint" id="pigeon-hint">
             ${this._renderActionHint('camera', '上滑拍照')}
             <span class="home-action-divider">·</span>
             ${this._renderActionHint('mic', '长按录音')}
           </div>
-          <div class="home-empty-hint">${App.UI.Icons.render('pen', 'home-tap-icon', { size: 14, strokeWidth: 2.2 })} 单击输入文字</div>
+          <div class="home-empty-hint" id="home-empty-hint">${App.UI.Icons.render('pen', 'home-tap-icon', { size: 14, strokeWidth: 2.2 })} 单击输入文字</div>
         </div>
       </div>
     `;
@@ -106,6 +113,13 @@ App.Pages.home = {
     const btn = document.getElementById('pigeon-btn');
     if (!btn) return;
     btn.classList.toggle('is-recording', !!isRecording);
+    // 切换录音信息 / 提示文字显示
+    const recInfo = document.getElementById('pigeon-rec-info');
+    const hint = document.getElementById('pigeon-hint');
+    const emptyHint = document.getElementById('home-empty-hint');
+    if (recInfo) recInfo.classList.toggle('active', !!isRecording);
+    if (hint) hint.style.display = isRecording ? 'none' : '';
+    if (emptyHint) emptyHint.style.display = isRecording ? 'none' : '';
   },
 
   _refreshTimelineIfVisible() {
@@ -297,25 +311,12 @@ App.Pages.home = {
     this._recordingPosPromise = App.Utils.getCurrentPosition();
     this._setRecordingState(true);
     this._recordingSeconds = 0;
-    const overlay = document.createElement('div');
-    overlay.className = 'recording-overlay';
-    overlay.id = 'recording-overlay';
-    overlay.innerHTML = `
-      <div class="recording-indicator">🎤</div>
-      <div class="recording-wave">
-        <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
-      </div>
-      <div class="recording-time" id="recording-time">00:00</div>
-      <div class="recording-hint">松开结束录音</div>
-      <div class="recording-cancel-zone" id="recording-cancel">上滑取消录音</div>
-    `;
-    document.body.appendChild(overlay);
-    this._recordingOverlay = overlay;
+    // 不再创建全屏遮罩，鸽子按钮已通过 is-recording 状态变为收声模式
     this._recordingTimer = setInterval(() => {
       this._recordingSeconds++;
       const min = String(Math.floor(this._recordingSeconds / 60)).padStart(2, '0');
       const sec = String(this._recordingSeconds % 60).padStart(2, '0');
-      const el = document.getElementById('recording-time');
+      const el = document.getElementById('pigeon-rec-time');
       if (el) el.textContent = `${min}:${sec}`;
     }, 1000);
   },
@@ -323,7 +324,9 @@ App.Pages.home = {
   async _stopRecording() {
     clearInterval(this._recordingTimer);
     this._setRecordingState(false);
-    if (this._recordingOverlay) { this._recordingOverlay.remove(); this._recordingOverlay = null; }
+    // 重置计时显示
+    const timeEl = document.getElementById('pigeon-rec-time');
+    if (timeEl) timeEl.textContent = '00:00';
     if (this._recordingSeconds < 1) {
       App.UI.Recorder.cancel();
       App.UI.Toast.show('录音时间太短', 'info');
@@ -368,7 +371,8 @@ App.Pages.home = {
     clearInterval(this._recordingTimer);
     App.UI.Recorder.cancel();
     this._setRecordingState(false);
-    if (this._recordingOverlay) { this._recordingOverlay.remove(); this._recordingOverlay = null; }
+    const timeEl = document.getElementById('pigeon-rec-time');
+    if (timeEl) timeEl.textContent = '00:00';
     App.UI.Toast.show('录音已取消', 'info');
   },
 

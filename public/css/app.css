@@ -420,12 +420,12 @@ body {
   justify-content: flex-end;
   text-align: center;
   position: relative;
-  padding-bottom: 18vh;
+  padding-bottom: 14vh;
 }
 .home-button-glow {
   position: absolute;
-  width: 200px;
-  height: 200px;
+  width: 240px;
+  height: 240px;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(66, 170, 117, 0.15) 0%, rgba(66, 170, 117, 0) 70%);
 }
@@ -434,8 +434,8 @@ body {
   z-index: 1;
 }
 .pigeon-btn {
-  width: 180px;
-  height: 180px;
+  width: 200px;
+  height: 200px;
   border-radius: 50%;
   background: var(--color-accent);
   display: flex;
@@ -445,7 +445,7 @@ body {
   border: 3px solid var(--color-border);
   box-shadow: 4px 4px 0px var(--color-border);
   cursor: pointer;
-  transition: transform 0.1s, box-shadow 0.1s;
+  transition: transform 0.1s, box-shadow 0.1s, background 0.25s;
   -webkit-user-select: none;
   user-select: none;
   position: relative;
@@ -463,11 +463,11 @@ body {
   transform: rotate(-20deg);
 }
 .pigeon-btn-img {
-  width: 280px;
-  height: 280px;
+  width: 310px;
+  height: 310px;
   object-fit: contain;
   pointer-events: none;
-  margin-top: -22px;
+  margin-top: -24px;
 }
 .pigeon-btn-face {
   position: absolute;
@@ -481,6 +481,8 @@ body {
   opacity: 0;
   transform: scale(0.86);
   color: #fff;
+  flex-direction: column;
+  gap: 8px;
 }
 .pigeon-btn.is-recording {
   background: var(--color-secondary);
@@ -500,6 +502,54 @@ body {
   opacity: 1;
   transform: scale(1);
 }
+/* 鸽子按钮内嵌声波动画 */
+.pigeon-rec-wave {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 18px;
+}
+.pigeon-rec-wave span {
+  display: block;
+  width: 4px;
+  background: #fff;
+  border-radius: 2px;
+  animation: waveBar 0.6s ease-in-out infinite;
+}
+.pigeon-rec-wave span:nth-child(1) { animation-delay: 0s; height: 6px; }
+.pigeon-rec-wave span:nth-child(2) { animation-delay: 0.12s; height: 12px; }
+.pigeon-rec-wave span:nth-child(3) { animation-delay: 0.24s; height: 18px; }
+.pigeon-rec-wave span:nth-child(4) { animation-delay: 0.12s; height: 12px; }
+.pigeon-rec-wave span:nth-child(5) { animation-delay: 0s; height: 6px; }
+
+/* 鸽子按钮下方录音信息 */
+.pigeon-rec-info {
+  margin-top: 14px;
+  text-align: center;
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: opacity 0.25s, max-height 0.25s;
+  pointer-events: none;
+}
+.pigeon-rec-info.active {
+  opacity: 1;
+  max-height: 60px;
+}
+.pigeon-rec-time {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--color-secondary);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.05em;
+}
+.pigeon-rec-hint {
+  font-size: 12px;
+  color: var(--color-text-hint);
+  font-weight: 700;
+  margin-top: 2px;
+}
+
 .pigeon-btn:active {
   transform: translate(4px, 4px);
   box-shadow: 2px 2px 0px var(--color-border);
@@ -2634,8 +2684,8 @@ body {
     --header-height: 42px;
   }
   .home-title { font-size: 24px; }
-  .pigeon-btn { width: 150px; height: 150px; }
-  .pigeon-btn-img { width: 240px; height: 240px; margin-top: -18px; }
+  .pigeon-btn { width: 170px; height: 170px; }
+  .pigeon-btn-img { width: 270px; height: 270px; margin-top: -20px; }
   .home-subtitle { font-size: 12px; }
   .timeline-header .title { font-size: 20px; }
   .tab-item .tab-label { font-size: 9px; }
@@ -2651,8 +2701,8 @@ body {
 /* 中等手机（376px - 430px，大部分 iPhone / Android） */
 @media (min-width: 376px) and (max-width: 430px) {
   .home-title { font-size: 26px; }
-  .pigeon-btn { width: 160px; height: 160px; }
-  .pigeon-btn-img { width: 260px; height: 260px; margin-top: -20px; }
+  .pigeon-btn { width: 180px; height: 180px; }
+  .pigeon-btn-img { width: 290px; height: 290px; margin-top: -22px; }
 }
 
 /* 大屏手机/折叠屏（431px - 480px） */
