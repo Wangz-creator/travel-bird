@@ -103,6 +103,7 @@ App.UI.GestureRecognizer = {
     const SWIPE_THRESHOLD = 80;       // 上滑距离阈值（px）
     const LONG_PRESS_DELAY = 600;     // 长按触发时间（ms）
     const MOVE_CANCEL_DIST = 15;      // 移动超过此距离取消长按等待
+    const REC_CANCEL_DIST = 150;      // 录音中下滑取消距离（px）
 
     let touchStartX = 0;
     let touchStartY = 0;
@@ -141,8 +142,8 @@ App.UI.GestureRecognizer = {
         return;
       }
 
-      // 长按中：如果手指移动较远，取消录音
-      if (isLongPress && (deltaY > SWIPE_THRESHOLD || Math.abs(deltaY) > MOVE_CANCEL_DIST * 3)) {
+      // 长按中：仅向下滑动超过 REC_CANCEL_DIST 才取消录音（deltaY 负值=向下）
+      if (isLongPress && deltaY < -REC_CANCEL_DIST) {
         handlers.onLongPressCancel?.();
         isLongPress = false;
         clearTimeout(longPressTimer);

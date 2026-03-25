@@ -40,7 +40,7 @@ App.Pages.home = {
           </div>
           <div class="pigeon-rec-info" id="pigeon-rec-info">
             <div class="pigeon-rec-time" id="pigeon-rec-time">00:00</div>
-            <div class="pigeon-rec-hint">松开结束 · 上滑取消</div>
+            <div class="pigeon-rec-hint">松开结束 · 下滑取消</div>
           </div>
           <div class="pigeon-hint" id="pigeon-hint">
             ${this._renderActionHint('camera', '上滑拍照')}

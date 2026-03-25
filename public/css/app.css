@@ -420,12 +420,12 @@ body {
   justify-content: flex-end;
   text-align: center;
   position: relative;
-  padding-bottom: 14vh;
+  padding-bottom: 10vh;
 }
 .home-button-glow {
   position: absolute;
-  width: 240px;
-  height: 240px;
+  width: 260px;
+  height: 260px;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(66, 170, 117, 0.15) 0%, rgba(66, 170, 117, 0) 70%);
 }
@@ -434,8 +434,8 @@ body {
   z-index: 1;
 }
 .pigeon-btn {
-  width: 200px;
-  height: 200px;
+  width: 220px;
+  height: 220px;
   border-radius: 50%;
   background: var(--color-accent);
   display: flex;
@@ -463,11 +463,11 @@ body {
   transform: rotate(-20deg);
 }
 .pigeon-btn-img {
-  width: 310px;
-  height: 310px;
+  width: 330px;
+  height: 330px;
   object-fit: contain;
   pointer-events: none;
-  margin-top: -24px;
+  margin-top: -26px;
 }
 .pigeon-btn-face {
   position: absolute;
@@ -2684,8 +2684,8 @@ body {
     --header-height: 42px;
   }
   .home-title { font-size: 24px; }
-  .pigeon-btn { width: 170px; height: 170px; }
-  .pigeon-btn-img { width: 270px; height: 270px; margin-top: -20px; }
+  .pigeon-btn { width: 190px; height: 190px; }
+  .pigeon-btn-img { width: 290px; height: 290px; margin-top: -22px; }
   .home-subtitle { font-size: 12px; }
   .timeline-header .title { font-size: 20px; }
   .tab-item .tab-label { font-size: 9px; }
@@ -2701,8 +2701,8 @@ body {
 /* 中等手机（376px - 430px，大部分 iPhone / Android） */
 @media (min-width: 376px) and (max-width: 430px) {
   .home-title { font-size: 26px; }
-  .pigeon-btn { width: 180px; height: 180px; }
-  .pigeon-btn-img { width: 290px; height: 290px; margin-top: -22px; }
+  .pigeon-btn { width: 200px; height: 200px; }
+  .pigeon-btn-img { width: 310px; height: 310px; margin-top: -24px; }
 }
 
 /* 大屏手机/折叠屏（431px - 480px） */
