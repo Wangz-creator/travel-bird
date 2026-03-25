@@ -263,7 +263,7 @@ openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365 -node
 
 - **作品名称**：Travel Bird（旅行的鸽子）
 - **团队编号**：kbzh
-- **团队成员**：王小平
+- **团队成员**：wang
 - **分工**：产品设计、前端开发、后端开发、AI 设计与调试均由本人完成
 
 ---
