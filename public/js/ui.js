@@ -100,40 +100,69 @@ App.UI.Icons = {
 
 App.UI.GestureRecognizer = {
   attach(element, handlers) {
+    const SWIPE_THRESHOLD = 80;       // 上滑距离阈值（px）
+    const LONG_PRESS_DELAY = 600;     // 长按触发时间（ms）
+    const MOVE_CANCEL_DIST = 15;      // 移动超过此距离取消长按等待
+
+    let touchStartX = 0;
     let touchStartY = 0;
     let touchStartTime = 0;
     let longPressTimer = null;
     let isLongPress = false;
     let isSwiping = false;
+    let gestureAborted = false;        // 手指大幅移动，放弃手势识别
 
     element.addEventListener('touchstart', (e) => {
       e.preventDefault();
+      touchStartX = e.touches[0].clientX;
       touchStartY = e.touches[0].clientY;
       touchStartTime = Date.now();
       isLongPress = false;
       isSwiping = false;
+      gestureAborted = false;
       longPressTimer = setTimeout(() => {
         isLongPress = true;
         handlers.onLongPressStart?.();
-      }, 500);
+      }, LONG_PRESS_DELAY);
     });
 
     element.addEventListener('touchmove', (e) => {
-      const deltaY = touchStartY - e.touches[0].clientY;
-      if (isLongPress && deltaY > 50) {
+      if (gestureAborted) return;
+      const curX = e.touches[0].clientX;
+      const curY = e.touches[0].clientY;
+      const deltaY = touchStartY - curY;           // 正值=向上
+      const absDeltaX = Math.abs(curX - touchStartX);
+
+      // 如果水平移动比垂直移动大，说明是横向滑动，放弃手势
+      if (absDeltaX > Math.abs(deltaY) && absDeltaX > MOVE_CANCEL_DIST) {
+        clearTimeout(longPressTimer);
+        if (isLongPress) { handlers.onLongPressCancel?.(); isLongPress = false; }
+        gestureAborted = true;
+        return;
+      }
+
+      // 长按中：如果手指移动较远，取消录音
+      if (isLongPress && (deltaY > SWIPE_THRESHOLD || Math.abs(deltaY) > MOVE_CANCEL_DIST * 3)) {
         handlers.onLongPressCancel?.();
         isLongPress = false;
         clearTimeout(longPressTimer);
         return;
       }
-      if (!isLongPress && deltaY > 50) {
+
+      // 非长按：手指移动超过小距离就取消长按计时
+      if (!isLongPress && Math.abs(deltaY) > MOVE_CANCEL_DIST) {
         clearTimeout(longPressTimer);
+      }
+
+      // 检测上滑手势（必须是明确的向上滑动，且垂直为主）
+      if (!isLongPress && deltaY > SWIPE_THRESHOLD && deltaY > absDeltaX * 1.5) {
         if (!isSwiping) isSwiping = true;
       }
     });
 
     const onTouchFinish = ({ cancelled = false } = {}) => {
       clearTimeout(longPressTimer);
+      if (gestureAborted) return;
       if (isLongPress) {
         isLongPress = false;
         handlers.onLongPressEnd?.();
@@ -141,7 +170,7 @@ App.UI.GestureRecognizer = {
         handlers.onSwipeUp?.();
       } else if (!isSwiping) {
         const elapsed = Date.now() - touchStartTime;
-        if (elapsed < 500) handlers.onTap?.();
+        if (elapsed < LONG_PRESS_DELAY) handlers.onTap?.();
       }
     };
     element.addEventListener('touchend', () => onTouchFinish());
@@ -149,8 +178,11 @@ App.UI.GestureRecognizer = {
 
     // 鼠标兼容（PC 调试）
     let mouseDown = false;
+    let mouseAborted = false;
     element.addEventListener('mousedown', (e) => {
       mouseDown = true;
+      mouseAborted = false;
+      touchStartX = e.clientX;
       touchStartY = e.clientY;
       touchStartTime = Date.now();
       isLongPress = false;
@@ -158,12 +190,18 @@ App.UI.GestureRecognizer = {
       longPressTimer = setTimeout(() => {
         isLongPress = true;
         handlers.onLongPressStart?.();
-      }, 500);
+      }, LONG_PRESS_DELAY);
     });
     element.addEventListener('mousemove', (e) => {
-      if (!mouseDown) return;
+      if (!mouseDown || mouseAborted) return;
       const deltaY = touchStartY - e.clientY;
-      if (!isLongPress && deltaY > 50) {
+      const absDeltaX = Math.abs(e.clientX - touchStartX);
+      if (absDeltaX > Math.abs(deltaY) && absDeltaX > MOVE_CANCEL_DIST) {
+        clearTimeout(longPressTimer);
+        mouseAborted = true;
+        return;
+      }
+      if (!isLongPress && deltaY > SWIPE_THRESHOLD && deltaY > absDeltaX * 1.5) {
         clearTimeout(longPressTimer);
         if (!isSwiping) { isSwiping = true; handlers.onSwipeUp?.(); mouseDown = false; }
       }
@@ -172,11 +210,12 @@ App.UI.GestureRecognizer = {
       if (!mouseDown) return;
       mouseDown = false;
       clearTimeout(longPressTimer);
+      if (mouseAborted) return;
       if (isLongPress) {
         handlers.onLongPressEnd?.();
       } else if (!isSwiping) {
         const elapsed = Date.now() - touchStartTime;
-        if (elapsed < 500) handlers.onTap?.();
+        if (elapsed < LONG_PRESS_DELAY) handlers.onTap?.();
       }
     });
   }
