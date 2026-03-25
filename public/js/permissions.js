@@ -51,7 +51,7 @@ App.Permissions = {
 
   /**
    * 查询单个权限的当前状态
-   * @returns 'granted' | 'denied' | 'prompt' | 'unknown'
+   * @returns 'granted' | 'denied' | 'prompt' | 'unsupported'
    */
   async queryStatus(apiName) {
     try {
@@ -61,8 +61,9 @@ App.Permissions = {
       }
     } catch (e) {
       // 有些浏览器不支持某些权限的查询（如 camera）
+      // 返回 'unsupported' 表示无法通过 API 查询，不代表未授权
     }
-    return 'unknown';
+    return 'unsupported';
   },
 
   /**
@@ -81,7 +82,8 @@ App.Permissions = {
    * 判断是否需要显示权限引导弹窗
    * 策略：
    *  1. 如果用户从未完成过引导（localStorage 没有标记），始终弹出
-   *  2. 如果已完成过引导，仅当有新的未授权权限时才弹出
+   *  2. 如果已完成过引导，仅当有明确为 'prompt' 状态的权限时才弹出
+   *     （'unsupported' 不算未授权，因为浏览器无法查询不代表未授权）
    */
   async needsGuide() {
     const guideCompleted = localStorage.getItem('permission_guide_completed');
@@ -91,9 +93,10 @@ App.Permissions = {
       return true;
     }
 
-    // 已完成过引导，检查是否有权限仍需授权
+    // 已完成过引导，仅当有明确处于 'prompt' 的权限时才弹出
+    // 'unsupported' 的权限（如 camera）浏览器无法查询，视为已处理
     const states = await this.queryAll();
-    return Object.values(states).some(s => s === 'prompt' || s === 'unknown');
+    return Object.values(states).some(s => s === 'prompt');
   },
 
   /**
@@ -181,7 +184,9 @@ App.Permissions = {
         grantAllBtn.textContent = '正在请求权限...';
         for (const perm of this._permissions) {
           const currentState = await this.queryStatus(perm.apiName);
+          // 只跳过已明确授权或明确拒绝的权限
           if (currentState === 'granted' || currentState === 'denied') continue;
+          // 'prompt' 和 'unsupported' 都尝试请求
           const statusEl = overlay.querySelector(`[data-status-id="${perm.id}"]`);
           if (statusEl) statusEl.innerHTML = this._renderStatus('requesting');
           try {
@@ -217,13 +222,15 @@ App.Permissions = {
   _renderStatus(state) {
     switch (state) {
       case 'granted':
+      case 'unsupported':
+        // 'unsupported' 表示浏览器无法查询该权限状态（如 camera），
+        // 实际请求时才知道；对用户显示为"已就绪"避免混淆
         return '<span class="permission-status granted">已授权</span>';
       case 'denied':
         return '<span class="permission-status denied">已拒绝</span>';
       case 'requesting':
         return '<span class="permission-status requesting">请求中...</span>';
       case 'prompt':
-      case 'unknown':
       default:
         return '<span class="permission-status prompt">待授权</span>';
     }
