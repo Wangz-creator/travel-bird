@@ -8,7 +8,7 @@ App.Pages.assistant = {
         <div class="page-header">
           <button class="back-btn" id="asst-back">←</button>
           <span class="title">鸽子助手</span>
-          <button class="header-action" id="asst-skip" style="color:var(--color-text-secondary);font-size:13px;">跳过</button>
+          <span id="asst-skip" style="display:none;"></span>
         </div>
         <div class="assistant-messages" id="asst-messages"></div>
         <div id="asst-platform-area" style="display:none;"></div>

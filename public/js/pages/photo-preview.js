@@ -3,6 +3,8 @@ App.Pages.photoPreview = {
     const file = props?.file;
     if (!file) { App.Router.popPage(); return { destroy() {} }; }
 
+    // 进入预览页面就开始获取位置
+    const posPromise = App.Utils.getCurrentPosition();
     const objectURL = URL.createObjectURL(file);
     container.innerHTML = `
       <div class="photo-preview-page">
@@ -95,7 +97,8 @@ App.Pages.photoPreview = {
 
         // 解析 EXIF 信息：拍摄时间和 GPS
         const exif = await App.API.FileStore.parseExif(filename);
-        const pos = await App.Utils.getCurrentPosition();
+        const pos = await posPromise;
+        console.log('[PhotoPreview] 定位结果:', pos);
 
         // EXIF GPS 优先于实时定位
         const lat = exif.latitude ?? pos?.latitude;

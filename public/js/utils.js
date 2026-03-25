@@ -157,11 +157,17 @@ App.Utils = {
 
   async getCurrentPosition() {
     return new Promise((resolve) => {
-      if (!navigator.geolocation) { resolve(null); return; }
+      if (!navigator.geolocation) { console.warn('[Geo] navigator.geolocation 不可用'); resolve(null); return; }
       navigator.geolocation.getCurrentPosition(
-        (pos) => resolve({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
-        () => resolve(null),
-        { timeout: 5000, maximumAge: 60000 }
+        (pos) => {
+          console.log('[Geo] 定位成功:', pos.coords.latitude, pos.coords.longitude);
+          resolve({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
+        },
+        (err) => {
+          console.warn('[Geo] 定位失败:', err.code, err.message);
+          resolve(null);
+        },
+        { timeout: 10000, maximumAge: 120000, enableHighAccuracy: false }
       );
     });
   },

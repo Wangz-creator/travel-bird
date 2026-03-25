@@ -217,6 +217,9 @@ App.Pages.home = {
       renderSelectedPhotos();
     };
 
+    // 提前开始获取位置，不要等到用户点发送
+    let posPromise = App.Utils.getCurrentPosition();
+
     overlay.addEventListener('click', (e) => { if (e.target === overlay) closeOverlay(); });
     overlay.querySelector('.text-input-cancel').addEventListener('click', closeOverlay);
     uploadBtn.addEventListener('click', () => {
@@ -245,10 +248,12 @@ App.Pages.home = {
           const tmpFilename = App.API.FileStore.generateFilename(ext);
           return App.API.FileStore.saveFile(file, tmpFilename);
         }));
-        const pos = await App.Utils.getCurrentPosition();
+        // 使用提前获取的位置，若仍在等待则继续等待
+        const pos = await posPromise;
+        console.log('[Home] 文字记录定位结果:', pos);
         // 如果没有实时定位，尝试从照片 EXIF 中获取 GPS
-        let lat = pos?.latitude;
-        let lon = pos?.longitude;
+        let lat = pos?.latitude ?? null;
+        let lon = pos?.longitude ?? null;
         if (lat == null && lon == null && mediaFilenames.length > 0) {
           const exif = await App.API.FileStore.parseExif(mediaFilenames[0]);
           if (exif.latitude != null) lat = exif.latitude;
@@ -262,7 +267,7 @@ App.Pages.home = {
           longitude: lon,
           address: null
         });
-        const geoPos = (lat != null && lon != null) ? { latitude: lat, longitude: lon } : pos;
+        const geoPos = (lat != null && lon != null) ? { latitude: lat, longitude: lon } : null;
         this._scheduleAddressBackfill(recordId, geoPos, null);
         closeOverlay();
         App.UI.Toast.show('记录成功', 'success');
@@ -288,6 +293,8 @@ App.Pages.home = {
       App.UI.Toast.show(msg, 'error');
       return;
     }
+    // 录音开始时就开始获取位置，不要等到录音结束
+    this._recordingPosPromise = App.Utils.getCurrentPosition();
     this._setRecordingState(true);
     this._recordingSeconds = 0;
     const overlay = document.createElement('div');
@@ -327,10 +334,13 @@ App.Pages.home = {
     App.UI.Toast.show('正在保存并转写...', 'info');
     const ext = blob.type.includes('mp4') ? 'mp4' : blob.type.includes('ogg') ? 'ogg' : 'webm';
     const filename = await App.API.FileStore.saveFile(blob, App.API.FileStore.generateFilename(ext));
-    const pos = await App.Utils.getCurrentPosition();
+    // 使用录音开始时就发起的定位请求
+    const pos = this._recordingPosPromise ? await this._recordingPosPromise : await App.Utils.getCurrentPosition();
+    this._recordingPosPromise = null;
+    console.log('[Home] 语音记录定位结果:', pos);
 
     // 先保存，content 默认待转写
-    const recordId = await App.API.Records.create({ type: 'voice', content: '[语音记录，待转写]', mediaFilename: filename, latitude: pos?.latitude, longitude: pos?.longitude, address: null });
+    const recordId = await App.API.Records.create({ type: 'voice', content: '[语音记录，待转写]', mediaFilename: filename, latitude: pos?.latitude ?? null, longitude: pos?.longitude ?? null, address: null });
 
     App.UI.Toast.show('语音已保存，正在转写...', 'info');
     this._updateHint();
